@@ -2,7 +2,7 @@ import gradio as gr
 from groq import Groq
 import os
 
-client = Groq(api_key=os.getenv("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"))
+client = Groq(api_key="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")
 
 # ✅ carregar base
 with open("dados.txt", "r", encoding="utf-8") as f:
