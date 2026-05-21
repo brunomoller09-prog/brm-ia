@@ -65,5 +65,8 @@ port = int(os.environ.get("PORT", 8080))
 demo.launch(
     server_name="0.0.0.0",
     server_port=port,
-    show_error=True
+    share=False,
+    show_error=True,
+    prevent_thread_lock=True
 )
+
