@@ -2,7 +2,6 @@ import gradio as gr
 from groq import Groq
 import os
 
-# ✅ pega a chave do Railway (Variables)
 client = Groq(api_key=os.getenv("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"))
 
 # ✅ carregar base
