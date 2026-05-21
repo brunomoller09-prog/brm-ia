@@ -36,11 +36,25 @@ Base:
     except Exception as e:
         return str(e)
 
-demo = gr.ChatInterface(
-    fn=responder,
-    title="🤖 BRM IA"
+with gr.Blocks() as demo:
+    gr.Markdown("# 🤖 BRM IA")
+
+    chatbot = gr.Chatbot()
+    msg = gr.Textbox(placeholder="Digite sua pergunta aqui...")
+
+    def interact(message, history):
+        response = responder(message, history)
+        history = history + [(message, response)]
+        return "", history
+
+    msg.submit(interact, [msg, chatbot], [msg, chatbot])
+
+import os
+
+port = int(os.environ.get("PORT", 8080))
+
+demo.launch(
+    server_name="0.0.0.0",
+    server_port=port
 )
 
-port = int(os.environ.get("PORT", 7860))
-
-demo.launch(server_name="0.0.0.0", server_port=port)
