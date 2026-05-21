@@ -1,0 +1,493 @@
+EMPRESA: BRM IA (Sistema baseado em processos industriais e logísticos)
+
+═══════════════════════════════════════
+PROCESSO: Solicitação de devolução de embalagens internas
+
+Fluxo:
+- Solicitação interna
+- Verificação da nota fiscal
+- Verificação do fluxo de aprovação
+- Recebimento de informações
+- Verificação de avaria
+- Classificação: caixas, colmeias, cantoneiras
+- Ajuste de custos
+- Aprovação
+- Direcionamento para moinho
+- Moagem
+- Endereçamento
+- Baixa de saldo
+
+
+═══════════════════════════════════════
+PROCESSO: Recebimento de materiais
+
+Fluxo:
+- Solicitação de material
+- Avaliação de necessidade
+- Verificação de origem (nacional/importado)
+- Programação de entrega
+- Emissão de pedido de compra
+- Recebimento físico
+- Conferência com nota fiscal
+- Lançamento da NF
+- Liberação de fornecedor
+- Controle na portaria
+- Conferência física
+- Endereçamento
+- Finalização
+
+
+═══════════════════════════════════════
+PROCESSO: Tratativas de divergências no recebimento
+
+Fluxo:
+- Identificação de divergência
+- Conferência físico x sistema
+- Classificação da divergência
+- Abertura de ocorrência
+- Comunicação entre áreas
+- Ajuste no sistema
+- Decisão:
+  - Correção
+  - Devolução
+  - Continuidade
+
+
+═══════════════════════════════════════
+PROCESSO: Picking fixo minuterias
+
+Fluxo:
+- Consulta programação diária
+- Solicitação de materiais
+- Coleta no estoque
+- Verificação de posição
+- Identificação via etiqueta
+- Separação de material
+- Abastecimento da linha
+- Tratamento de falhas:
+  - Item não encontrado
+  - Buscar alternativa
+  - Ajustar produção
+
+
+═══════════════════════════════════════
+PROCESSO: Reporte e retrabalho
+
+Fluxo:
+- Produção / montagem
+- Cadastro no sistema
+- Inspeção de qualidade
+- Decisão:
+  - Aprovado → seguir
+  - Reprovado → retrabalho
+- Execução de retrabalho
+- Nova validação
+- Expedição/faturamento
+
+
+═══════════════════════════════════════
+PROCESSO: Peças injetadas
+
+Fluxo:
+- Produção de peças
+- Montagem de produtos
+- Registro no sistema
+- Embalagem
+- Paletização
+- Inspeção de qualidade
+- Decisão:
+  - Aprovado → expedição
+  - Reprovado → retrabalho
+- Correção e validação
+- Liberação final
+
+
+═══════════════════════════════════════
+PROCESSO: Envio de materiais para terceiros
+
+Fluxo:
+- Separação de material
+- Conferência de estoque
+- Identificação do material
+- Solicitação de nota fiscal
+- Emissão de documentos
+- Envio ao fornecedor
+- Controle de divergência:
+  - Falta
+  - Sobra
+- Ajuste de estoque
+- Comunicação com fornecedor
+- Baixa final
+
+═══════════════════════════════════════
+PROCESSO: Agendamento de materiais nacionais
+
+Fluxo:
+- Solicitação do fornecedor via formulário
+- Informar:
+  - material
+  - quantidade
+  - nota fiscal
+  - pedido
+- Planejamento logístico analisa demanda
+- Uso do sistema TOTVS (MRP)
+- Atualização da planilha Demanda x Estoque
+- Análise de estoque disponível
+- Decisão:
+  - Aprovar entrega
+  - Reprovar e solicitar ajuste
+- Portaria registra entrada do fornecedor
+- Recebimento acompanha descarga
+
+
+═══════════════════════════════════════
+PROCESSO: Recebimento de componentes nacionais
+
+Fluxo:
+- Conferência conforme programação
+- Conferência por tipo:
+  - embalagem padrão
+  - granel (peso)
+  - pacote (amostragem)
+- Etiquetagem por pallet
+- Conferência simultânea ao descarregamento
+- Comparação físico x sistema
+- Tratamento de divergência via NEXT
+- Armazenamento via WMS
+- Inspeção de qualidade quando necessário
+
+
+═══════════════════════════════════════
+PROCESSO: Agendamento de cargas importadas
+
+Fluxo:
+- Atualização diária de planilhas
+- Controle de containers recebidos
+- Monitoramento de:
+  - demurrage
+  - armazenagem
+- Programação de retirada de containers
+- Solicitação e conferência de notas fiscais
+- Comunicação com transportadoras
+- Atualização no sistema ONESOURCE
+- Gestão de containers:
+  - porto
+  - depósito externo (depot)
+  - fábrica
+- Planejamento de descarga
+
+═══════════════════════════════════════
+PROCESSO: Recebimento de material importado
+
+Fluxo:
+- Verificar NF liberada no sistema
+- Conferir lacre do container
+- Fotografar evidências
+- Direcionar veículo para doca
+- Descarga e organização
+- Conferência por:
+  - contagem
+  - peso
+  - amostragem
+- Identificação de divergências
+- Registro via NEXT
+- Transferência para estoque
+- Inspeção de qualidade
+
+═══════════════════════════════════════
+PROCESSO: Recebimento de matéria prima e EPS
+
+Fluxo:
+- Conferir agendamento
+- Realizar pesagem inicial
+- Direcionar descarga
+- Conferir lacre
+- Conferência por:
+  - quantidade
+  - peso
+  - amostragem
+- Exemplos:
+  - EPS → contagem
+  - resinas → cálculo peso
+- Tratamento de divergência
+- Pesagem final
+- Armazenamento
+- Inspeção de qualidade
+
+═══════════════════════════════════════
+PROCESSO: Apontamento de inspeção e não conformidade
+
+Fluxo:
+- Identificação via etiqueta de qualidade
+- Abertura no sistema NEXT
+- Inclusão de dados:
+  - fornecedor
+  - NF
+  - item
+  - lote
+- Envio para análise
+- Resultado:
+  - aprovado → segue fluxo
+  - reprovado → retrabalho/devolução
+- Registro de divergência:
+  - quantidade
+  - qualidade
+- Registro de ocorrência com fornecedores
+- Solicitação de reembolso, se necessário
+
+═══════════════════════════════════════
+MÓDULO: NÃO CONFORMIDADE (QPR)
+
+PROCESSO: Recebimento de material não conforme
+
+Fluxo:
+- Receber solicitação do setor da qualidade
+- Conferente acessa sistema
+- Preencher dados do envio
+- Gerar nota fiscal
+- Inserir itens e quantidades
+- Descarga dos materiais
+- Conferência conforme nota fiscal
+- Transferência do material para QPR
+- Envio para área de qualidade
+
+──────────────────────────────
+
+MÓDULO: CONTAINERS (ESTOCAGEM)
+
+PROCESSO: Estufagem e movimentação de peças
+
+Fluxo:
+- Identificação física dos containers (CA1, CA2, CA3)
+- Controle sistêmico no depósito AP1 【1-29426f】  
+- Alocação de material no container
+- Lacrar container após armazenamento
+- Solicitar bloqueio de saldo
+- Caso necessário retirar:
+  - solicitar autorização
+  - desbloquear sistema
+- Transferir material:
+  - AP1 → APR → PRO (produção) 【1-29426f】  
+
+──────────────────────────────
+
+MÓDULO: RECEBIMENTO NACIONAL DETALHADO
+
+PROCESSO: Conferência de material nacional
+
+Fluxo:
+- Verificar fornecedores liberados
+- Direcionar caminhão para doca
+- Realizar descarga
+- Conferência por:
+  - quantidade
+  - peso
+  - amostragem 【2-2dd1b3】  
+- Etiquetar pallets
+- Identificar divergências
+- Tratativa:
+  - devolver ao fornecedor
+  - abrir NEXT
+- Transferir material para estoque (WMS)
+- Realizar inspeção de qualidade
+
+──────────────────────────────
+
+REGRAS DO MÓDULO
+
+- Este módulo trata apenas:
+  - não conformidade
+  - containers
+  - conferência detalhada
+- Responder apenas sobre esses temas
+- Se sair do escopo → informar: "fora deste módulo"
+``
+═══════════════════════════════════════
+ÁREA: RECEBIMENTO ESPECIAL
+
+PROCESSO: Material não produtivo, intercompany e gás
+
+Fluxo:
+- Validar se existe NF (não receber sem NF) 【1-6dcd80】
+- Conferência do material:
+  - unidade → contagem
+  - peso → balança
+- Identificação do solicitante
+- Conferência física
+- Em caso de falta → devolve tudo
+- Em caso de sobra → devolve excedente 【1-6dcd80】
+- Registro da ocorrência
+- Entrega ao solicitante com assinatura
+- Tratativa intercompany:
+  - lançar NF
+  - conferir material
+  - ajustar saldo
+- Recebimento de gás:
+  - pesagem inicial
+  - conferência
+  - pesagem final 【1-6dcd80】
+
+═══════════════════════════════════════
+ÁREA: ADMINISTRATIVO / FINANCEIRO
+
+PROCESSO: Conferência e pagamento sindicato
+
+Fluxo:
+- Receber email com fatura
+- Salvar documentos
+- Conferir:
+  - boletim
+  - diárias
+  - produção 【2-e70380】
+- Preencher planilha de validação
+- Comparar valores:
+  - planilha vs fatura 【2-e70380】
+- Se correto:
+  - seguir pagamento no sistema TOTVS 【2-e70380】
+- Se divergente:
+  - solicitar correção ao sindicato
+- Gerar solicitação de pagamento
+- Enviar email financeiro com dados
+
+═══════════════════════════════════════
+ÁREA: GESTÃO / INDICADORES
+
+PROCESSO: Preenchimento de indicadores logísticos
+
+Fluxo:
+- Preencher indicadores até 6º dia útil 【3-97acaa】
+- Planos de ação até 8º dia útil 【3-97acaa】
+- Receber informações via e-mail
+- Preencher indicadores no sistema SGM 【3-97acaa】
+
+Principais indicadores:
+
+- Lotes rejeitados:
+  - reprovados / total inspecionado 【3-97acaa】
+
+- Compras emergenciais:
+  - quantidade ou valor mensal 【3-97acaa】
+
+- Compras diretas:
+  - volume e valor 【3-97acaa】
+
+- Acuracidade de estoque:
+  - quantidade
+  - valor
+  - posição 【3-97acaa】
+
+- Disponibilidade de peças:
+  - faltante / total solicitado 【3-97acaa】
+
+- Demurrage:
+  - atraso na devolução de container 【3-97acaa】
+
+- Armazenagem marítima:
+  - custo extra vs padrão 【3-97acaa】
+
+- Auditoria de posição:
+  - posições corretas / total inventariado 【3-97acaa】
+
+═══════════════════════════════════════
+
+═══════════════════════════════════════
+ÁREA: ALMOXARIFADO / CONSUMO
+
+PROCESSO: Solicitação e entrega de STRETCH
+
+Fluxo:
+- Solicitação via sistema TOTVS (CD1406) 【1-f9645b】
+- Informar:
+  - setor solicitante
+  - código do item (049963)
+  - quantidade em kg 【1-f9645b】
+- Cada bobina ≈ 3kg
+- Anotar número da requisição
+- Retirar material no local indicado
+- Atendimento via CD1409
+- Conferir peso real entregue
+- Garantir que não ultrapasse o solicitado 【1-f9645b】
+
+═══════════════════════════════════════
+ÁREA: RECEBIMENTO INTERNO
+
+PROCESSO: Recebimento de produtos para funcionários
+
+Fluxo:
+- Coleta no CD (B2) via transporte interno 【2-673aca】
+- Carga lacrada obrigatoriamente
+- Validar lacre com manifesto 【2-673aca】
+- Descarga na portaria
+- Conferência:
+  - DANFE vs manifesto 【2-673aca】
+- Em caso de divergência:
+  - produto extra → fica na portaria
+  - produto faltante → reportar via e-mail 【2-673aca】
+
+═══════════════════════════════════════
+ÁREA: ALMOXARIFADO / PRODUÇÃO
+
+PROCESSO: Requisição de materiais auxiliares
+
+Fluxo:
+- Solicitação via TOTVS (CD1406) 【3-ea2d83】
+- Informar:
+  - local
+  - motivo
+  - material
+  - quantidade
+- Gerar número da requisição
+- Enviar para almoxarifado
+
+PROCESSO: Atendimento da requisição
+
+Fluxo:
+- Acessar CD1409 【3-ea2d83】
+- Inserir número da requisição
+- Ver itens solicitados
+- Selecionar endereço
+- Informar quantidade atendida
+- Confirmar atendimento
+
+PROCESSO: Devolução de material
+
+Fluxo:
+- Usar CD1410 【3-ea2d83】
+- Informar requisição
+- Selecionar item
+- Informar quantidade devolvida
+- Confirmar devolução
+- Material retorna ao estoque
+
+PROCESSO: Baixa no WMS
+
+Fluxo:
+- Realizar baixa sistema (CD1409)
+- Realizar baixa WMS (BC9018) 【3-ea2d83】
+- Conferir saldo no sistema
+- Validar movimentação concluída
+
+═══════════════════════════════════════
+REGRAS ADICIONAIS
+
+- Sempre validar:
+  - código do material
+  - quantidade correta
+  - unidade de medida
+- Toda requisição deve existir antes da retirada
+- Material sem requisição:
+  - só com autorização
+- Conferência sempre antes da baixa
+
+
+REGRAS ADICIONAIS DA IA
+
+- Responder também sobre:
+  - financeiro (pagamentos)    
+  - materiais não produtivos
+- Priorizar resposta prática (passo a passo)
+- Em dúvida → informar que precisa verificar processo específico
+- Sempre responder baseado nesses processos
+- Não inventar informações
+- Se não souber, informar: "não tenho essa informação no processo"
+- Responder como um analista da empresa
