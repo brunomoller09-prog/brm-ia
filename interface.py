@@ -42,13 +42,18 @@ Se não souber, diga: não tenho essa informação no processo.
 with gr.Blocks() as demo:
     gr.Markdown("# 🤖 BRM IA")
     
-    chatbot = gr.Chatbot()
+    chatbot = gr.Chatbot(type="messages")
     msg = gr.Textbox(placeholder="Digite sua pergunta...")
     
     def interact(mensagem, historico):
-        resposta = responder(mensagem, historico)
-        historico = historico + [(mensagem, resposta)]
-        return "", historico
+    resposta = responder(mensagem, historico)
+    
+    historico = historico + [
+        {"role": "user", "content": mensagem},
+        {"role": "assistant", "content": resposta}
+    ]
+
+    return "", historico
     
     msg.submit(interact, [msg, chatbot], [msg, chatbot])
 
