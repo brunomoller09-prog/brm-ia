@@ -4,12 +4,13 @@ from groq import Groq
 from fastapi import FastAPI
 import uvicorn
 
-# ✅ usa variável do Railway
+# ✅ cliente Groq (usa variável do Railway)
 client = Groq(api_key=os.getenv("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"))
 
-# ✅ lê seu arquivo
+# ✅ carregar base
 with open("dados.txt", "r", encoding="utf-8") as f:
     conhecimento = f.read()
+
 
 def responder(mensagem, historico):
     try:
@@ -22,7 +23,7 @@ Você é a BRM IA.
 Use apenas essas informações:
 {conhecimento}
 
-Se não souber, diga: não tenho essa informação no processo.
+Se não souber diga: não tenho essa informação no processo.
 """
             },
             {"role": "user", "content": mensagem}
@@ -38,30 +39,33 @@ Se não souber, diga: não tenho essa informação no processo.
     except Exception as e:
         return f"Erro: {str(e)}"
 
-# ✅ interface
+
+# ✅ interface correta PARA GRADIO
 with gr.Blocks() as demo:
     gr.Markdown("# 🤖 BRM IA")
-    
+
     chatbot = gr.Chatbot(type="messages")
     msg = gr.Textbox(placeholder="Digite sua pergunta...")
-    
-    def interact(mensagem, historico):
-    resposta = responder(mensagem, historico)
-    
-    historico = historico + [
-        {"role": "user", "content": mensagem},
-        {"role": "assistant", "content": resposta}
-    ]
 
-    return "", historico
-    
+    def interact(mensagem, historico):
+        resposta = responder(mensagem, historico)
+
+        historico = historico + [
+            {"role": "user", "content": mensagem},
+            {"role": "assistant", "content": resposta}
+        ]
+
+        return "", historico
+
     msg.submit(interact, [msg, chatbot], [msg, chatbot])
 
-# ✅ servidor REAL (resolve erro do Railway)
+
+# ✅ integração com Railway (FastAPI)
 app = FastAPI()
 app = gr.mount_gradio_app(app, demo, path="/")
 
-# ✅ execução
+
+# ✅ executar servidor
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
