@@ -5,7 +5,7 @@ from fastapi import FastAPI
 import uvicorn
 
 # ✅ Chave lida de variável de ambiente — NUNCA coloque a chave direto no código
-client = Groq(api_key=os.getenv("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"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ✅ Leitura do arquivo de conhecimento com tratamento de erro
 try:
