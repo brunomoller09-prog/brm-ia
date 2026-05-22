@@ -4,29 +4,21 @@ from groq import Groq
 from fastapi import FastAPI
 import uvicorn
 
-# ✅ cliente Groq (usa variável do Railway)
+# ✅ CORRETO AQUI
 client = Groq(api_key=os.getenv("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"))
 
-# ✅ carregar base de dados
 with open("dados.txt", "r", encoding="utf-8") as f:
     conhecimento = f.read()
 
-
-# ✅ função que conversa com a IA
 def responder(mensagem, historico):
     try:
         mensagens = [
             {
                 "role": "system",
-                "content": f"""
-Você é a BRM IA, especialista nos processos da empresa.
+                "content": f"""Você é a BRM IA.
 
-Use apenas essas informações:
-
+Use essas informações:
 {conhecimento}
-
-Se não souber, diga:
-"não tenho essa informação no processo"
 """
             },
             {
@@ -46,12 +38,11 @@ Se não souber, diga:
         return f"Erro: {str(e)}"
 
 
-# ✅ INTERFACE (VERSÃO COMPATÍVEL COM GRADIO)
 with gr.Blocks() as demo:
     gr.Markdown("# 🤖 BRM IA")
 
     chatbot = gr.Chatbot()
-    msg = gr.Textbox(placeholder="Digite sua pergunta...")
+    msg = gr.Textbox()
 
     def interact(mensagem, historico):
         if historico is None:
@@ -59,20 +50,15 @@ with gr.Blocks() as demo:
 
         resposta = responder(mensagem, historico)
 
-        # ✅ formato correto (tupla) → evita erro
         historico.append((mensagem, resposta))
-
         return "", historico
 
     msg.submit(interact, [msg, chatbot], [msg, chatbot])
 
 
-# ✅ SERVIDOR (OBRIGATÓRIO pro Railway)
 app = FastAPI()
 app = gr.mount_gradio_app(app, demo, path="/")
 
-
-# ✅ RODAR APP
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
