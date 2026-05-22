@@ -41,7 +41,7 @@ def responder(mensagem, historico):
 
 demo = gr.ChatInterface(
     fn=responder,
-    title="🤖 BRM IA",
+    title="⭐ BRM IA",
     description="Assistente virtual da BRM. Tire suas dúvidas abaixo."
 )
 
