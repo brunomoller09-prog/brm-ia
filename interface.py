@@ -12,7 +12,7 @@ try:
 except FileNotFoundError:
     conhecimento = "Nenhuma base de conhecimento carregada."
 
-def responder(mensagem: str, historico: list) -> str:
+def responder(mensagem, historico):
     try:
         mensagens = [
             {
@@ -20,8 +20,6 @@ def responder(mensagem: str, historico: list) -> str:
                 "content": f"Você é a BRM IA.\nUse essas informações:\n{conhecimento}"
             }
         ]
-        for msg in (historico or []):
-            mensagens.append({"role": msg["role"], "content": msg["content"]})
         mensagens.append({"role": "user", "content": mensagem})
 
         resposta = client.chat.completions.create(
@@ -34,26 +32,11 @@ def responder(mensagem: str, historico: list) -> str:
     except Exception as e:
         return f"Erro: {str(e)}"
 
-with gr.Blocks(title="BRM IA") as demo:
-    gr.Markdown("# 🤖 BRM IA")
-    gr.Markdown("Assistente virtual da BRM. Tire suas dúvidas abaixo.")
-
-    chatbot = gr.Chatbot(height=500, type="messages")
-    msg = gr.Textbox(placeholder="Digite sua mensagem aqui...", show_label=False)
-    limpar = gr.Button("🗑️ Limpar conversa")
-
-    def interact(mensagem: str, historico: list):
-        if not mensagem.strip():
-            return "", historico
-        if historico is None:
-            historico = []
-        resposta = responder(mensagem, historico)
-        historico.append({"role": "user", "content": mensagem})
-        historico.append({"role": "assistant", "content": resposta})
-        return "", historico
-
-    msg.submit(interact, [msg, chatbot], [msg, chatbot])
-    limpar.click(lambda: ([], ""), outputs=[chatbot, msg])
+demo = gr.ChatInterface(
+    fn=responder,
+    title="🤖 BRM IA",
+    description="Assistente virtual da BRM. Tire suas dúvidas abaixo."
+)
 
 app = FastAPI()
 app = gr.mount_gradio_app(app, demo, path="/")
