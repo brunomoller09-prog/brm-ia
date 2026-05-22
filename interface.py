@@ -22,9 +22,8 @@ def responder(mensagem: str, historico: list) -> str:
             }
         ]
 
-        for humano, assistente in (historico or []):
-            mensagens.append({"role": "user", "content": humano})
-            mensagens.append({"role": "assistant", "content": assistente})
+        for msg in (historico or []):
+            mensagens.append({"role": msg["role"], "content": msg["content"]})
 
         mensagens.append({"role": "user", "content": mensagem})
 
@@ -44,7 +43,7 @@ with gr.Blocks(title="BRM IA") as demo:
     gr.Markdown("# 🤖 BRM IA")
     gr.Markdown("Assistente virtual da BRM. Tire suas dúvidas abaixo.")
 
-    chatbot = gr.Chatbot(height=500)
+    chatbot = gr.Chatbot(height=500, type="messages")
     msg = gr.Textbox(
         placeholder="Digite sua mensagem aqui...",
         show_label=False
@@ -57,7 +56,8 @@ with gr.Blocks(title="BRM IA") as demo:
         if historico is None:
             historico = []
         resposta = responder(mensagem, historico)
-        historico.append((mensagem, resposta))
+        historico.append({"role": "user", "content": mensagem})
+        historico.append({"role": "assistant", "content": resposta})
         return "", historico
 
     msg.submit(interact, [msg, chatbot], [msg, chatbot])
