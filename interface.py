@@ -509,17 +509,11 @@ async def chat(request: Request):
     system_instruction=mensagens[0]["content"]
 )
 
-historico_gemini = []
-for par in historico[-5:]:
-    historico_gemini.append({"role": "user", "parts": [par[0]]})
-    historico_gemini.append({"role": "model", "parts": [par[1]]})
+resposta = sessão_de_bate-papo.enviar_mensagem(mensagem)
+retornar Resposta JSON({"resposta":resposta.texto})   # ← Aqui termina o bloco try
 
-chat_session = model.start_chat(history=historico_gemini)
-resposta = chat_session.send_message(mensagem)
-return JSONResponse({"response": resposta.text})
-
-    except Exception as e:
-        return JSONResponse({"response": f"Erro: {str(e)}"}, status_code=500)
+exceto Exceção como e:     # ← O "except" está fora do try!
+    retornar Resposta JSON({"resposta":f"Erro:{str(e)}"},código_de_status=500)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
