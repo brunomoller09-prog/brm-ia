@@ -1,12 +1,12 @@
 import os
-from groq import Groq
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import json
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+import google.generativeai as genai
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 try:
     with open("dados.txt", "r", encoding="utf-8") as f:
@@ -504,13 +504,19 @@ async def chat(request: Request):
 
         mensagens.append({"role": "user", "content": mensagem})
 
-        resposta = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=mensagens,
-            max_tokens=1024,
-            temperature=0.7
-        )
-        return JSONResponse({"response": resposta.choices[0].message.content})
+        model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction=mensagens[0]["content"]
+)
+
+historico_gemini = []
+for par in historico[-5:]:
+    historico_gemini.append({"role": "user", "parts": [par[0]]})
+    historico_gemini.append({"role": "model", "parts": [par[1]]})
+
+chat_session = model.start_chat(history=historico_gemini)
+resposta = chat_session.send_message(mensagem)
+return JSONResponse({"response": resposta.text})
 
     except Exception as e:
         return JSONResponse({"response": f"Erro: {str(e)}"}, status_code=500)
