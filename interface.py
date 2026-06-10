@@ -12,15 +12,20 @@ try:
 except FileNotFoundError:
     conhecimento = "Nenhuma base de conhecimento carregada."
 
-SYSTEM_PROMPT = f"""Você é a BRM IA, assistente virtual da BRM.
-Regras obrigatórias:
-- Responda SEMPRE em português
-- Seja DIRETO e CURTO — máximo 5 linhas para perguntas simples
-- Use listas apenas quando houver 3 ou mais itens
-- Nunca repita a pergunta do usuário
-- Se não souber, diga apenas: "Não tenho essa informação."
-- Baseie-se APENAS nos processos abaixo
+SYSTEM_PROMPT = f"""Você é a BRM IA, assistente virtual da Britânia — especialista em processos logísticos e industriais da fábrica de Joinville.
 
+REGRAS OBRIGATÓRIAS:
+- Responda SEMPRE em português brasileiro
+- Seja DIRETO e PRÁTICO — o usuário é operador ou analista de fábrica
+- Para perguntas simples: máximo 4 linhas
+- Para perguntas de processo: use lista numerada passo a passo
+- NUNCA repita a pergunta do usuário
+- NUNCA invente informações — use apenas os processos abaixo
+- Se não souber: responda exatamente "Não tenho essa informação no processo."
+- Use os sistemas corretos: TOTVS, NEXT, WMS, SAM, ONESOURCE
+- Trate o usuário pelo nome se ele informou
+
+BASE DE CONHECIMENTO:
 {conhecimento}"""
 
 app = FastAPI()
@@ -32,7 +37,7 @@ HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BRM IA</title>
+<title>BRM IA — Assistente de Processos</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -44,6 +49,7 @@ HTML = r"""<!DOCTYPE html>
     --borda: #d0d8e8; --bubble-bot: #ffffff;
     --bubble-user: #1a2f5e; --header-bg: #1a2f5e;
     --input-bg: #f0f2f5; --shadow: rgba(26,47,94,0.08);
+    --erro: #fee2e2; --erro-texto: #991b1b;
   }
   [data-theme="dark"] {
     --branco: #1e2433; --cinza-bg: #151929;
@@ -51,6 +57,7 @@ HTML = r"""<!DOCTYPE html>
     --borda: #2a3550; --bubble-bot: #1e2a42;
     --bubble-user: #1a4a8a; --header-bg: #0f1829;
     --input-bg: #1e2433; --shadow: rgba(0,0,0,0.3);
+    --erro: #3b1212; --erro-texto: #fca5a5;
   }
   body { font-family: 'Barlow', sans-serif; background: var(--cinza-bg); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; transition: background 0.3s; }
   header { background: var(--header-bg); padding: 0 20px; height: 64px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; box-shadow: 0 2px 16px var(--shadow); }
@@ -63,16 +70,29 @@ HTML = r"""<!DOCTYPE html>
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   .theme-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 16px; }
   .theme-btn:hover { background: rgba(255,255,255,0.2); }
+
+  /* TELA DE NOME */
+  .name-screen { position: fixed; inset: 0; background: var(--cinza-bg); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .name-card { background: var(--branco); border-radius: 24px; padding: 40px 36px; max-width: 400px; width: 100%; box-shadow: 0 8px 40px var(--shadow); text-align: center; }
+  .name-card .icon { width: 72px; height: 72px; background: var(--azul); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .name-card h2 { font-size: 22px; font-weight: 700; color: var(--texto); margin-bottom: 8px; }
+  .name-card p { font-size: 15px; color: var(--texto-claro); margin-bottom: 28px; line-height: 1.5; }
+  .name-input { width: 100%; border: 1.5px solid var(--borda); border-radius: 14px; padding: 14px 16px; font-size: 16px; font-family: 'Barlow', sans-serif; color: var(--texto); outline: none; background: var(--cinza-bg); transition: border-color 0.2s; margin-bottom: 16px; }
+  .name-input:focus { border-color: var(--azul); background: var(--branco); }
+  .name-btn { width: 100%; background: var(--amarelo); color: var(--azul); border: none; border-radius: 14px; padding: 14px; font-size: 16px; font-weight: 700; font-family: 'Barlow', sans-serif; cursor: pointer; transition: all 0.2s; }
+  .name-btn:hover { background: var(--amarelo-hover); transform: translateY(-1px); }
+  .name-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
   .chat-area { flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
   .chat-area::-webkit-scrollbar { width: 4px; }
   .chat-area::-webkit-scrollbar-thumb { background: var(--borda); border-radius: 4px; }
-  .welcome { text-align: center; padding: 48px 20px; }
+  .welcome { text-align: center; padding: 40px 20px; }
   .welcome-icon { width: 80px; height: 80px; background: var(--azul); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 8px 32px rgba(26,47,94,0.25); animation: float 3s ease-in-out infinite; }
   @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
   .welcome h2 { font-size: 22px; font-weight: 700; color: var(--texto); margin-bottom: 8px; }
   .welcome p { font-size: 15px; color: var(--texto-claro); line-height: 1.6; max-width: 340px; margin: 0 auto 24px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-  .chip { background: var(--bubble-bot); border: 1.5px solid var(--borda); border-radius: 20px; padding: 8px 16px; font-size: 13px; color: var(--azul); cursor: pointer; font-family: 'Barlow', sans-serif; font-weight: 500; transition: all 0.2s; }
+  .chip { background: var(--bubble-bot); border: 1.5px solid var(--borda); border-radius: 20px; padding: 8px 16px; font-size: 13px; color: var(--azul); cursor: pointer; font-family: 'Barlow', sans-serif; font-weight: 500; transition: all 0.2s; text-align: left; }
   [data-theme="dark"] .chip { color: var(--amarelo); }
   .chip:hover { background: var(--azul); color: #fff; border-color: var(--azul); transform: translateY(-1px); }
   .msg { display: flex; gap: 10px; max-width: 80%; animation: fadeUp 0.25s ease; }
@@ -81,12 +101,13 @@ HTML = r"""<!DOCTYPE html>
   .msg.bot { align-self: flex-start; }
   .avatar { width: 34px; height: 34px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
   .msg.bot .avatar { background: var(--azul); color: var(--amarelo); font-family: 'Barlow Condensed', sans-serif; font-size: 15px; }
-  .msg.user .avatar { background: var(--amarelo); color: var(--azul); }
+  .msg.user .avatar { background: var(--amarelo); color: var(--azul); font-size: 13px; }
   .msg-wrapper { display: flex; flex-direction: column; gap: 6px; }
   .msg.user .msg-wrapper { align-items: flex-end; }
   .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.7; }
   .msg.bot .bubble { background: var(--bubble-bot); color: var(--texto); border-bottom-left-radius: 4px; border: 1px solid var(--borda); box-shadow: 0 1px 4px var(--shadow); }
   .msg.user .bubble { background: var(--bubble-user); color: #fff; border-bottom-right-radius: 4px; }
+  .bubble.erro { background: var(--erro); color: var(--erro-texto); border-color: #fca5a5; }
   .bubble p { margin-bottom: 8px; }
   .bubble p:last-child { margin-bottom: 0; }
   .bubble ul, .bubble ol { padding-left: 20px; margin: 8px 0; }
@@ -102,7 +123,6 @@ HTML = r"""<!DOCTYPE html>
   .action-btn { background: var(--bubble-bot); border: 1px solid var(--borda); border-radius: 8px; padding: 3px 10px; font-size: 12px; color: var(--texto-claro); cursor: pointer; font-family: 'Barlow', sans-serif; transition: all 0.15s; }
   .action-btn:hover { background: var(--azul); color: #fff; border-color: var(--azul); }
   .action-btn.copied { background: #22c55e; color: #fff; border-color: #22c55e; }
-
   .feedback { display: flex; align-items: center; gap: 6px; }
   .feedback-label { font-size: 11px; color: var(--texto-claro); }
   .fb-btn { background: none; border: 1px solid var(--borda); border-radius: 8px; padding: 3px 8px; font-size: 14px; cursor: pointer; transition: all 0.15s; line-height: 1; }
@@ -111,7 +131,6 @@ HTML = r"""<!DOCTYPE html>
   .fb-btn.active-bad { background: rgba(239,68,68,0.15); border-color: #ef4444; }
   .fb-btn:disabled { cursor: default; transform: none; opacity: 0.6; }
   .fb-thanks { font-size: 11px; color: #22c55e; display: none; }
-
   .typing { display: flex; gap: 5px; padding: 14px 16px; }
   .typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--texto-claro); animation: bounce 1.2s infinite; }
   .typing span:nth-child(2) { animation-delay: 0.2s; }
@@ -133,10 +152,26 @@ HTML = r"""<!DOCTYPE html>
   .clear-btn:hover { color: #e53e3e; background: rgba(229,62,62,0.08); }
   .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1a2f5e; color: #fff; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-family: 'Barlow', sans-serif; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  @media (max-width: 480px) { header { padding: 0 14px; } .logo-text { font-size: 22px; } .chat-area { padding: 16px 12px; } .msg { max-width: 92%; } .input-area { padding: 12px 14px; } }
+  @media (max-width: 480px) { header { padding: 0 14px; } .logo-text { font-size: 22px; } .chat-area { padding: 16px 12px; } .msg { max-width: 92%; } .input-area { padding: 12px 14px; } .name-card { padding: 32px 24px; } }
 </style>
 </head>
 <body>
+
+<!-- TELA DE NOME -->
+<div class="name-screen" id="nameScreen">
+  <div class="name-card">
+    <div class="icon">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <polygon points="20,4 27,18 23,18 30,36 10,20 17,20" fill="#f5a800"/>
+      </svg>
+    </div>
+    <h2>Bem-vindo à BRM IA</h2>
+    <p>Sua assistente de processos industriais e logísticos. Como devo te chamar?</p>
+    <input class="name-input" id="nameInput" type="text" placeholder="Digite seu nome..." maxlength="40" />
+    <button class="name-btn" id="nameBtn" onclick="startChat()" disabled>Entrar</button>
+  </div>
+</div>
+
 <header>
   <div class="logo-area">
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -146,30 +181,12 @@ HTML = r"""<!DOCTYPE html>
     <div class="logo-text">BRM<span>ia</span></div>
   </div>
   <div class="header-right">
-    <div class="status"><div class="status-dot"></div>Online</div>
+    <div class="status"><div class="status-dot"></div><span id="statusText">Online</span></div>
     <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">🌙</button>
   </div>
 </header>
 
-<div class="chat-area" id="chat">
-  <div class="welcome" id="welcome">
-    <div class="welcome-icon">
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-        <polygon points="20,4 27,18 23,18 30,36 10,20 17,20" fill="#f5a800"/>
-      </svg>
-    </div>
-    <h2>Olá! Sou a BRM IA</h2>
-    <p>Sua assistente de processos industriais e logísticos.</p>
-    <div class="chips">
-      <button class="chip" onclick="sendChip(this)">Como fazer recebimento?</button>
-      <button class="chip" onclick="sendChip(this)">Como abrir uma ocorrência?</button>
-      <button class="chip" onclick="sendChip(this)">Processo de devolução</button>
-      <button class="chip" onclick="sendChip(this)">Picking de minuterias</button>
-      <button class="chip" onclick="sendChip(this)">Agendamento de materiais</button>
-      <button class="chip" onclick="sendChip(this)">Indicadores logísticos</button>
-    </div>
-  </div>
-</div>
+<div class="chat-area" id="chat"></div>
 
 <div class="input-area">
   <div class="input-row">
@@ -195,7 +212,9 @@ HTML = r"""<!DOCTYPE html>
   const sendBtn = document.getElementById('send');
   let history = [];
   let msgCount = 0;
+  let userName = '';
 
+  // Tema
   const savedTheme = localStorage.getItem('brm-theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   document.querySelector('.theme-btn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
@@ -206,6 +225,48 @@ HTML = r"""<!DOCTYPE html>
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('brm-theme', next);
     document.querySelector('.theme-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+  }
+
+  // Tela de nome
+  const nameInput = document.getElementById('nameInput');
+  const nameBtn = document.getElementById('nameBtn');
+  nameInput.addEventListener('input', () => {
+    nameBtn.disabled = nameInput.value.trim().length < 2;
+  });
+  nameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && nameInput.value.trim().length >= 2) startChat();
+  });
+
+  function startChat() {
+    userName = nameInput.value.trim();
+    document.getElementById('nameScreen').style.display = 'none';
+    document.title = `BRM IA — ${userName}`;
+    showWelcome();
+    input.focus();
+  }
+
+  function showWelcome() {
+    chat.innerHTML = '';
+    const welcome = document.createElement('div');
+    welcome.className = 'welcome';
+    welcome.id = 'welcome';
+    welcome.innerHTML = `
+      <div class="welcome-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <polygon points="20,4 27,18 23,18 30,36 10,20 17,20" fill="#f5a800"/>
+        </svg>
+      </div>
+      <h2>Olá, ${userName}! 👋</h2>
+      <p>Estou aqui para ajudar com dúvidas sobre os processos da BRM. O que precisa?</p>
+      <div class="chips">
+        <button class="chip" onclick="sendChip(this)">Físico sobrando no recebimento, o que faço?</button>
+        <button class="chip" onclick="sendChip(this)">Como abrir uma ocorrência no NEXT?</button>
+        <button class="chip" onclick="sendChip(this)">Container lacrado, posso retirar material?</button>
+        <button class="chip" onclick="sendChip(this)">Material sem etiqueta, o que fazer?</button>
+        <button class="chip" onclick="sendChip(this)">Como conferir material importado?</button>
+        <button class="chip" onclick="sendChip(this)">Prazo para preencher indicadores?</button>
+      </div>`;
+    chat.appendChild(welcome);
   }
 
   function showToast(msg) {
@@ -260,24 +321,25 @@ HTML = r"""<!DOCTYPE html>
     return result.join('');
   }
 
-  function addMsg(text, who) {
+  function addMsg(text, who, isError=false) {
     document.getElementById('welcome')?.remove();
     msgCount++;
-    const id = 'msg-' + msgCount;
-
     const div = document.createElement('div');
     div.className = 'msg ' + who;
-    div.id = id;
 
     const avatar = document.createElement('div');
     avatar.className = 'avatar';
-    avatar.textContent = who === 'bot' ? 'IA' : 'EU';
+    if (who === 'bot') {
+      avatar.textContent = 'IA';
+    } else {
+      avatar.textContent = userName ? userName.charAt(0).toUpperCase() : 'EU';
+    }
 
     const wrapper = document.createElement('div');
     wrapper.className = 'msg-wrapper';
 
     const bubble = document.createElement('div');
-    bubble.className = 'bubble';
+    bubble.className = 'bubble' + (isError ? ' erro' : '');
     bubble.innerHTML = who === 'bot'
       ? parseMarkdown(text)
       : text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -290,10 +352,9 @@ HTML = r"""<!DOCTYPE html>
     ts.textContent = getTime();
     footer.appendChild(ts);
 
-    if (who === 'bot') {
+    if (who === 'bot' && !isError) {
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
-
       const copyBtn = document.createElement('button');
       copyBtn.className = 'action-btn';
       copyBtn.textContent = '📋 Copiar';
@@ -308,47 +369,31 @@ HTML = r"""<!DOCTYPE html>
 
       const feedback = document.createElement('div');
       feedback.className = 'feedback';
-
       const label = document.createElement('span');
       label.className = 'feedback-label';
       label.textContent = 'Útil?';
-
       const goodBtn = document.createElement('button');
-      goodBtn.className = 'fb-btn';
-      goodBtn.textContent = '👍';
-      goodBtn.title = 'Resposta útil';
-
+      goodBtn.className = 'fb-btn'; goodBtn.textContent = '👍';
       const badBtn = document.createElement('button');
-      badBtn.className = 'fb-btn';
-      badBtn.textContent = '👎';
-      badBtn.title = 'Resposta ruim';
-
+      badBtn.className = 'fb-btn'; badBtn.textContent = '👎';
       const thanks = document.createElement('span');
-      thanks.className = 'fb-thanks';
-      thanks.textContent = 'Obrigado!';
+      thanks.className = 'fb-thanks'; thanks.textContent = 'Obrigado!';
 
-      function sendFeedback(type, pergunta) {
-        goodBtn.disabled = true;
-        badBtn.disabled = true;
-        thanks.style.display = 'inline';
-        label.style.display = 'none';
+      function sendFeedback(type) {
+        goodBtn.disabled = true; badBtn.disabled = true;
+        thanks.style.display = 'inline'; label.style.display = 'none';
         if (type === 'good') goodBtn.classList.add('active-good');
         else badBtn.classList.add('active-bad');
-
         fetch('/feedback', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({type, resposta: text, pergunta})
+          body: JSON.stringify({type, resposta: text, usuario: userName, pergunta: history.length ? history[history.length-1][0] : ''})
         });
       }
-
-      goodBtn.onclick = () => sendFeedback('good', history.length ? history[history.length-1][0] : '');
-      badBtn.onclick = () => sendFeedback('bad', history.length ? history[history.length-1][0] : '');
-
-      feedback.appendChild(label);
-      feedback.appendChild(goodBtn);
-      feedback.appendChild(badBtn);
-      feedback.appendChild(thanks);
+      goodBtn.onclick = () => sendFeedback('good');
+      badBtn.onclick = () => sendFeedback('bad');
+      feedback.appendChild(label); feedback.appendChild(goodBtn);
+      feedback.appendChild(badBtn); feedback.appendChild(thanks);
       footer.appendChild(feedback);
     }
 
@@ -378,26 +423,7 @@ HTML = r"""<!DOCTYPE html>
 
   function clearChat() {
     history = []; msgCount = 0;
-    chat.innerHTML = '';
-    const welcome = document.createElement('div');
-    welcome.className = 'welcome'; welcome.id = 'welcome';
-    welcome.innerHTML = `
-      <div class="welcome-icon">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <polygon points="20,4 27,18 23,18 30,36 10,20 17,20" fill="#f5a800"/>
-        </svg>
-      </div>
-      <h2>Olá! Sou a BRM IA</h2>
-      <p>Sua assistente de processos industriais e logísticos.</p>
-      <div class="chips">
-        <button class="chip" onclick="sendChip(this)">Como fazer recebimento?</button>
-        <button class="chip" onclick="sendChip(this)">Como abrir uma ocorrência?</button>
-        <button class="chip" onclick="sendChip(this)">Processo de devolução</button>
-        <button class="chip" onclick="sendChip(this)">Picking de minuterias</button>
-        <button class="chip" onclick="sendChip(this)">Agendamento de materiais</button>
-        <button class="chip" onclick="sendChip(this)">Indicadores logísticos</button>
-      </div>`;
-    chat.appendChild(welcome);
+    showWelcome();
     showToast('Conversa limpa');
   }
 
@@ -407,23 +433,29 @@ HTML = r"""<!DOCTYPE html>
     addMsg(text, 'user');
     input.value = ''; input.style.height = 'auto';
     sendBtn.disabled = true;
+    document.getElementById('statusText').textContent = 'Digitando...';
     addTyping();
     try {
       const res = await fetch('/chat', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({message: text, history})
+        body: JSON.stringify({message: text, history, userName})
       });
       const data = await res.json();
       document.getElementById('typing')?.remove();
-      addMsg(data.response, 'bot');
-      history.push([text, data.response]);
-      if (history.length > 5) history = history.slice(-5);
+      if (data.error) {
+        addMsg('Estou com instabilidade no momento. Tente novamente em alguns instantes.', 'bot', true);
+      } else {
+        addMsg(data.response, 'bot');
+        history.push([text, data.response]);
+        if (history.length > 5) history = history.slice(-5);
+      }
     } catch(e) {
       document.getElementById('typing')?.remove();
-      addMsg('Erro de conexão. Tente novamente.', 'bot');
+      addMsg('Não consegui me conectar. Verifique sua internet e tente novamente.', 'bot', true);
     }
     sendBtn.disabled = false;
+    document.getElementById('statusText').textContent = 'Online';
     input.focus();
   }
 </script>
@@ -439,12 +471,20 @@ async def chat_endpoint(request: Request):
     body = await request.json()
     mensagem = body.get("message", "")
     historico = body.get("history", [])
+    user_name = body.get("userName", "")
+
     try:
         mensagens = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+        if user_name:
+            mensagens[0]["content"] += f"\n\nO usuário se chama {user_name}. Use o nome dele naturalmente quando fizer sentido."
+
         for par in historico[-5:]:
             mensagens.append({"role": "user", "content": par[0]})
             mensagens.append({"role": "assistant", "content": par[1]})
+
         mensagens.append({"role": "user", "content": mensagem})
+
         resposta = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=mensagens,
@@ -452,29 +492,30 @@ async def chat_endpoint(request: Request):
             temperature=0.5
         )
         return JSONResponse({"response": resposta.choices[0].message.content})
+
     except Exception as e:
-        return JSONResponse({"response": f"Erro: {str(e)}"}, status_code=500)
+        return JSONResponse({"error": True, "response": str(e)}, status_code=500)
 
 @app.post("/feedback")
 async def feedback_endpoint(request: Request):
     body = await request.json()
     feedbacks.append({
         "type": body.get("type"),
+        "usuario": body.get("usuario"),
         "pergunta": body.get("pergunta"),
         "resposta": body.get("resposta")
     })
-    print(f"FEEDBACK [{body.get('type')}] — {body.get('pergunta', '')[:80]}")
+    print(f"FEEDBACK [{body.get('type')}] {body.get('usuario', '')} — {body.get('pergunta', '')[:80]}")
     return JSONResponse({"ok": True})
 
 @app.get("/feedbacks")
 async def ver_feedbacks():
     total = len(feedbacks)
     bons = sum(1 for f in feedbacks if f["type"] == "good")
-    ruins = total - bons
     return JSONResponse({
         "total": total,
         "bons": bons,
-        "ruins": ruins,
+        "ruins": total - bons,
         "lista": feedbacks[-20:]
     })
 
