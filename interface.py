@@ -5,8 +5,13 @@ from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from groq import Groq
 import uvicorn
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+# --- Configuração da API Groq ---
+api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    raise RuntimeError("Variável de ambiente GROQ_API_KEY não configurada. Por favor, defina-a.")
+client = Groq(api_key=api_key)
 
+# --- Carregamento da Base de Conhecimento ---
 try:
     with open("dados.txt", "r", encoding="utf-8") as f:
         conhecimento = f.read()
@@ -31,14 +36,18 @@ BASE DE CONHECIMENTO:
 
 app = FastAPI()
 
-app.mount("/estatico", StaticFiles(directory="estático"), name="estatico")
+# --- Montagem de Arquivos Estáticos (pasta renomeada para 'estatico' sem acento) ---
+app.mount("/estatico", StaticFiles(directory="estatico"), name="estatico")
 
+# Lista para armazenar feedbacks (em memória, não persistente)
+# Para produção, considere salvar em um banco de dados ou arquivo JSON.
 feedbacks = []
 
+# --- HTML da Interface (Favicon alterado para .png e proteção XSS básica) ---
 HTML = r"""<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
-<link rel="icon" type="image/x-icon" href="/estatico/favicon.ico">
+<link rel="icon" type="image/png" href="/estatico/favicon.png">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,7 +62,7 @@ HTML = r"""<!DOCTYPE html>
     --texto: #1a2f5e; --texto-claro: #5a6a8a;
     --borda: #d0d8e8; --bubble-bot: #ffffff;
     --bubble-user: #1a2f5e; --header-bg: #1a2f5e;
-    --input-bg: #f0f2f5; --shadow: rgba(26,47,94,0.08);
+    --input-bg: #f0f2f5; --shadow: rgba(26,47,94,0.08 );
     --erro: #fee2e2; --erro-texto: #991b1b;
   }
   [data-theme="dark"] {
@@ -255,13 +264,14 @@ HTML = r"""<!DOCTYPE html>
     const welcome = document.createElement('div');
     welcome.className = 'welcome';
     welcome.id = 'welcome';
+    // Usando textContent para o nome do usuário para evitar XSS
     welcome.innerHTML = `
       <div class="welcome-icon">
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
           <polygon points="20,4 27,18 23,18 30,36 10,20 17,20" fill="#f5a800"/>
         </svg>
       </div>
-      <h2>Olá, ${userName}! 👋</h2>
+      <h2>Olá, <span id="welcomeUserName"></span>! 👋</h2>
       <p>Estou aqui para ajudar com dúvidas sobre os processos da BRM. O que precisa?</p>
       <div class="chips">
         <button class="chip" onclick="sendChip(this)">Físico sobrando no recebimento, o que faço?</button>
@@ -272,6 +282,7 @@ HTML = r"""<!DOCTYPE html>
         <button class="chip" onclick="sendChip(this)">Prazo para preencher indicadores?</button>
       </div>`;
     chat.appendChild(welcome);
+    document.getElementById('welcomeUserName').textContent = userName; // Define o nome do usuário de forma segura
   }
 
   function showToast(msg) {
@@ -482,6 +493,7 @@ async def chat_endpoint(request: Request):
         mensagens = [{"role": "system", "content": SYSTEM_PROMPT}]
 
         if user_name:
+            # Adiciona o nome do usuário ao SYSTEM_PROMPT para que a IA possa usá-lo
             mensagens[0]["content"] += f"\n\nO usuário se chama {user_name}. Use o nome dele naturalmente quando fizer sentido."
 
         for par in historico[-5:]:
@@ -499,7 +511,9 @@ async def chat_endpoint(request: Request):
         return JSONResponse({"response": resposta.choices[0].message.content})
 
     except Exception as e:
-        return JSONResponse({"error": True, "response": str(e)}, status_code=500)
+        # Loga o erro para depuração em produção
+        print(f"Erro no endpoint /chat: {e}")
+        return JSONResponse({"error": True, "response": "Ocorreu um erro interno. Tente novamente mais tarde."}, status_code=500)
 
 @app.post("/feedback")
 async def feedback_endpoint(request: Request):
@@ -513,6 +527,10 @@ async def feedback_endpoint(request: Request):
     print(f"FEEDBACK [{body.get('type')}] {body.get('usuario', '')} — {body.get('pergunta', '')[:80]}")
     return JSONResponse({"ok": True})
 
+# REMOVIDA a rota /favicon.ico, pois o favicon.png será servido via /estatico/favicon.png
+
+# Endpoint para ver feedbacks (ATENÇÃO: Este endpoint expõe dados e não tem autenticação.
+# Em produção, ele DEVE ser protegido ou removido.)
 @app.get("/feedbacks")
 async def ver_feedbacks():
     total = len(feedbacks)
@@ -523,10 +541,6 @@ async def ver_feedbacks():
         "ruins": total - bons,
         "lista": feedbacks[-20:]
     })
-
-@app.get("/favicon.ico")
-async def favicon():
-    return FileResponse("estático/favicon.ico")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
