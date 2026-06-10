@@ -1,6 +1,6 @@
 import os
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from groq import Groq
 import uvicorn
 
@@ -30,11 +30,15 @@ BASE DE CONHECIMENTO:
 
 app = FastAPI()
 
+app.mount("/estatico", StaticFiles(directory="estático"), name="estatico")
+
 feedbacks = []
 
 HTML = r"""<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
+<link rel="icon" type="image/x-icon" href="/estatico/favicon.ico">
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BRM IA — Assistente de Processos</title>
@@ -518,6 +522,10 @@ async def ver_feedbacks():
         "ruins": total - bons,
         "lista": feedbacks[-20:]
     })
+
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("estático/favicon.ico")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
